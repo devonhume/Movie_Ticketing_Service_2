@@ -1,0 +1,140 @@
+{% include "header.html" %}
+
+<div class="container">
+
+    <h2>{{ movie.title }}</h2>
+    <h3>{{ showing.date }} | {{ showing.time }} | Adult ${{ adult_price }} | Child ${{ child_price }}</h3>
+    <hr>
+
+</div>
+
+<div class="container">
+<form method="POST" action="">
+    {% csrf_token %}
+    {{ ticket_form.as_p }}
+    <button name="ticket_numbers" type="submit" value="ticket_numbers">Submit</button>
+</form>
+</div>
+
+<div class="modal" id="purchase-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Purchase Tickets</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><h5>{{ movie.title }}</h5></p>
+          {% if child_tickets > 0 %}
+            <p><h6>{{ adult_tickets }} adult tickets and {{ child_tickets }} child tickets for {{ showing.time }} showing on {{ showing.date }}.</h6></p>
+          {% else %}
+            <p><h6>{{ adult_tickets }} tickets for {{ showing.time }} showing on {{ showing.date }}.</h6></p>
+          {% endif %}
+          <p>Total Purchase: ${{ total_price }}</p>
+          <hr>
+        <form method="POST" action="">
+                {% csrf_token %}
+                {{ purchase_form.as_ul }}
+                <button name="purchase_submit" type="submit" value="purchase_tickets">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="out-of-seats-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Not Enough Seats</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>You are attempting to purchase {{ tickets }} tickets.</p>
+          <p>There are only {{ showing.seats_available }} seats left for this showing.</p>
+          <p>Please purchase fewer tickets or choose a different showing.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="payment-failed-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">PAYMENT FAILED</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p><h6>Something went wrong with your purchase!</h6></p>
+          <p>Please review your payment details and try again.</p>
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <button name="fail_submit" type="submit" value="fail_submit">Confirm</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="payment-success-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Payment Success!</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Your tickets will arrive in the provided email shortly.</p>
+          <p>Thank you for using Movie Time!</p>
+      </div>
+      <div class="modal-footer">
+        <form method="POST" action="">
+            {% csrf_token %}
+            <button name="success_submit" type="submit" value="success_submit">Confirm</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include "footer.html" %}
+
+{% block script %}
+        {% if ticket_flag == True %}
+            <script>
+                var myModal = new bootstrap.Modal(document.getElementById('out-of-seats-modal'))
+                myModal.show()
+            </script>
+        {% endif %}
+        {% if purchase_flag == 2 %}
+            <script>
+                var myModal = new bootstrap.Modal(document.getElementById('payment-failed-modal'))
+                myModal.show()
+            </script>
+        {% elif purchase_flag == 1 %}
+            <script>
+                var myModal = new bootstrap.Modal(document.getElementById('payment-success-modal'))
+                myModal.show()
+            </script>
+        {% endif %}
+        {% if adult_tickets|add:child_tickets > 0 and ticket_flag == False %}
+            <script>
+                var myModal = new bootstrap.Modal(document.getElementById('purchase-modal'))
+                myModal.show()
+            </script>
+        {% endif %}
+{% endblock %}
